@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopKart - E-Commerce Demo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f1f3f6;color:#222}
+header{background:#2874f0;color:#fff;position:sticky;top:0;z-index:10;padding:10px 14px}
+.top{display:flex;align-items:center;gap:10px}.logo{font-size:22px;font-weight:800;font-style:italic;white-space:nowrap}
+.search{flex:1;display:flex;background:#fff;border-radius:4px;overflow:hidden}.search input{width:100%;border:0;padding:11px;outline:0;font-size:14px}.search button{border:0;background:#fff;padding:0 12px;font-size:18px}
+.cart{font-size:24px;cursor:pointer;position:relative}.badge{position:absolute;top:-5px;right:-6px;background:#ff6161;border-radius:50%;font-size:11px;padding:3px 6px}
+.hero{margin:10px;background:linear-gradient(120deg,#2874f0,#5aa8ff);color:#fff;border-radius:8px;padding:22px}.hero h1{margin:0 0 7px;font-size:25px}.hero p{margin:0 0 14px}.hero button,.buy{background:#ff9f00;color:#fff;border:0;border-radius:4px;padding:11px 17px;font-weight:bold;cursor:pointer}
+.cats{display:flex;overflow:auto;gap:10px;padding:10px}.cat{min-width:90px;background:#fff;padding:12px 7px;border-radius:8px;text-align:center;box-shadow:0 1px 3px #ddd;cursor:pointer}.cat .ico{font-size:27px}
+.title{padding:5px 14px;font-size:20px;font-weight:700}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
+.card{background:#fff;border-radius:7px;padding:10px;box-shadow:0 1px 3px #ddd;position:relative}.pic{height:150px;display:flex;align-items:center;justify-content:center;background:#fafafa;border-radius:6px;font-size:75px}.card h3{font-size:15px;margin:9px 0 5px}.realpic{width:100%;height:150px;object-fit:contain;border-radius:6px;background:#fafafa}.details{background:#2874f0;color:#fff;border:0;border-radius:4px;padding:9px;cursor:pointer;width:100%;margin-top:6px}.price{font-size:18px;font-weight:bold}.old{text-decoration:line-through;color:#888;font-size:12px;margin-left:5px}.off{color:#168b39;font-size:12px;margin-left:5px}.actions{display:flex;gap:6px;margin-top:9px}.actions button{flex:1;border:0;padding:9px;border-radius:4px;cursor:pointer}.add{background:#ff9f00;color:#fff}.buy{background:#fb641b;width:100%;margin-top:6px}
+.empty{text-align:center;padding:40px;color:#777}.panel{position:fixed;right:-100%;top:0;width:88%;max-width:400px;height:100%;background:#fff;z-index:20;transition:.3s;box-shadow:-3px 0 12px #999;overflow:auto}.panel.open{right:0}.panelhead{padding:16px;background:#2874f0;color:#fff;font-size:20px;font-weight:bold;display:flex;justify-content:space-between}.cartitem{display:flex;gap:10px;padding:12px;border-bottom:1px solid #eee}.cartpic{font-size:42px}.cartinfo{flex:1}.qty button{border:1px solid #ccc;background:#fff;width:28px;height:28px}.checkout{padding:14px;position:sticky;bottom:0;background:#fff;border-top:1px solid #ddd}.checkout button{width:100%;padding:13px;border:0;background:#fb641b;color:#fff;font-weight:bold;border-radius:4px}
+.overlay{display:none;position:fixed;inset:0;background:#0008;z-index:15}.overlay.show{display:block}
+footer{text-align:center;padding:25px;color:#777;font-size:12px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,1fr)}.hero{margin:15px auto;max-width:1200px}.cats,.title{max-width:1200px;margin:auto}.grid{max-width:1200px;margin:auto}}
+</style>
+</head>
+<body>
+<header>
+ <div class="top">
+  <div class="logo">ShopKart</div>
+  <div class="search"><input id="search" placeholder="Search products..." oninput="render()"><button>🔍</button></div>
+  <div class="cart" onclick="openCart()">🛒<span id="badge" class="badge">0</span></div>
+ </div>
+</header>
+<div id="filters" style="background:#fff;padding:8px 14px;display:flex;gap:7px;overflow:auto;border-bottom:1px solid #ddd">
+ <select id="sortFilter" onchange="render()" style="padding:8px;border:1px solid #ddd;border-radius:4px"><option value="default">Sort</option><option value="low">Price: Low → High</option><option value="high">Price: High → Low</option></select>
+ <select id="priceFilter" onchange="render()" style="padding:8px;border:1px solid #ddd;border-radius:4px"><option value="all">Any Price</option><option value="1000">Under ₹1,000</option><option value="5000">Under ₹5,000</option><option value="10000">Under ₹10,000</option><option value="20000">Under ₹20,000</option></select>
+ <select id="stockFilter" onchange="render()" style="padding:8px;border:1px solid #ddd;border-radius:4px"><option value="all">All Stock</option><option value="in">In Stock</option></select>
+</div>
+<div style="background:#fff;padding:10px 14px;display:flex;justify-content:flex-end;gap:8px;border-bottom:1px solid #ddd">
+<button onclick="openAccount()" style="border:0;background:#fff;font-weight:bold;cursor:pointer">👤 <span id="userLabel">Login / Signup</span></button>
+<button onclick="showOrders()" style="border:0;background:#fff;font-weight:bold;cursor:pointer">📦 Orders</button><button onclick="openAdmin()" style="border:0;background:#fff;font-weight:bold;cursor:pointer">🛠️ Admin</button>
+</div>
+
+<section class="hero">
+ <h1>Big Shopping, Better Deals 🎉</h1>
+ <p>Mobile, electronics, fashion aur bahut kuch ek hi jagah.</p>
+ <button onclick="document.getElementById('products').scrollIntoView()">Shop Now</button>
+</section>
+
+<div class="cats">
+ <div class="cat" onclick="filterCat('All')"><div class="ico">🛍️</div>All</div>
+ <div class="cat" onclick="filterCat('Mobile')"><div class="ico">📱</div>Mobiles</div>
+ <div class="cat" onclick="filterCat('Electronics')"><div class="ico">🎧</div>Electronics</div>
+ <div class="cat" onclick="filterCat('Fashion')"><div class="ico">👕</div>Fashion</div>
+ <div class="cat" onclick="filterCat('Home')"><div class="ico">🏠</div>Home</div>
+</div>
+
+<div class="title" id="products">Trending Products 🔥</div>
+<div class="grid" id="grid"></div>
+
+
+<footer>ShopKart Demo • Flipkart-style learning project</footer>
+
+<div class="overlay" id="accountOverlay" onclick="closeAccount()"></div>
+<div class="panel" id="accountPanel">
+ <div class="panelhead">👤 Account <span onclick="closeAccount()" style="cursor:pointer">✕</span></div>
+ <div style="padding:16px">
+  <div id="accountBox"></div>
+ </div>
+</div>
+
+<div class="overlay" id="ordersOverlay" onclick="closeOrders()"></div>
+<div class="panel" id="ordersPanel">
+ <div class="panelhead">📦 My Orders <span onclick="closeOrders()" style="cursor:pointer">✕</span></div>
+ <div id="ordersList"></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+<div class="panel" id="panel">
+ <div class="panelhead">🛒 My Cart <span onclick="closeCart()" style="cursor:pointer">✕</span></div>
+ <div id="cartList"></div>
+ <div class="checkout"><input id="address" placeholder="Delivery address" style="width:100%;padding:11px;margin-bottom:9px;border:1px solid #ccc;border-radius:4px"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><b>Total</b><b id="total">₹0</b></div><button onclick="checkout()">Place Order</button></div>
+</div>
+
+<div class="overlay" id="productOverlay" onclick="closeProduct()"></div>
+<div class="panel" id="productPanel"><div class="panelhead">Product Details <span onclick="closeProduct()" style="cursor:pointer">✕</span></div><div id="productDetail" style="padding:15px"></div></div>
+<div class="overlay" id="adminOverlay" onclick="closeAdmin()"></div>
+<div class="panel" id="adminPanel">
+ <div class="panelhead">🛠️ Admin Panel <span onclick="closeAdmin()" style="cursor:pointer">✕</span></div>
+ <div style="padding:15px">
+  <h3>Add Product</h3>
+  <input id="aName" placeholder="Product name" style="width:100%;padding:10px;margin:5px 0">
+  <select id="aCat" style="width:100%;padding:10px;margin:5px 0"><option>Mobile</option><option>Electronics</option><option>Fashion</option><option>Home</option></select>
+  <input id="aPrice" type="number" placeholder="Price" style="width:100%;padding:10px;margin:5px 0">
+  <input id="aOld" type="number" placeholder="Old price" style="width:100%;padding:10px;margin:5px 0">
+  <input id="aStock" type="number" placeholder="Stock" style="width:100%;padding:10px;margin:5px 0">
+  <input id="aImg" placeholder="Image URL (optional)" style="width:100%;padding:10px;margin:5px 0">
+  <button onclick="adminAdd()" style="width:100%;padding:11px;background:#2874f0;color:#fff;border:0;border-radius:4px;margin:6px 0;font-weight:bold">➕ Add Product</button>
+  <hr><h3>Products</h3><div id="adminProducts"></div>
+  <hr><h3>Orders</h3><div id="adminOrders"></div>
+ </div>
+</div>
+<script>
+let products=[
+{id:1,name:"Smartphone Pro 5G",cat:"Mobile",price:18999,old:22999,icon:"📱",img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=600&q=80"},
+{id:2,name:"Wireless Earbuds",cat:"Electronics",price:1299,old:2499,icon:"🎧",img:"https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=600&q=80"},
+{id:3,name:"Smart Watch",cat:"Electronics",price:1999,old:3999,icon:"⌚",img:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80"},
+{id:4,name:"Men's Casual Shirt",cat:"Fashion",price:799,old:1499,icon:"👕",img:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=600&q=80"},
+{id:5,name:"Running Shoes",cat:"Fashion",price:1499,old:2999,icon:"👟",img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80"},
+{id:6,name:"LED Table Lamp",cat:"Home",price:699,old:1199,icon:"💡",img:"https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=600&q=80"},
+{id:7,name:"Bluetooth Speaker",cat:"Electronics",price:1599,old:2499,icon:"🔊",img:"https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=600&q=80"},
+{id:8,name:"Power Bank 20,000mAh",cat:"Electronics",price:999,old:1699,icon:"🔋",img:"https://images.unsplash.com/photo-1609592424305-2e9c1b7f1a4a?auto=format&fit=crop&w=600&q=80"}
+];
+let savedProducts=JSON.parse(localStorage.getItem("shopkart_products")||"null");
+if(savedProducts) products=savedProducts;
+let cart=JSON.parse(localStorage.getItem("shopkart_cart")||"[]"), currentCat="All";
+let user=JSON.parse(localStorage.getItem("shopkart_user")||"null");
+let orders=JSON.parse(localStorage.getItem("shopkart_orders")||"[]");
+
+function render(){
+ const q=document.getElementById("search").value.toLowerCase().trim();
+ const priceLimit=document.getElementById("priceFilter")?.value||"all";
+ const stockFilter=document.getElementById("stockFilter")?.value||"all";
+ const sort=document.getElementById("sortFilter")?.value||"default";
+ let list=products.filter(p=>(currentCat==="All"||p.cat===currentCat)&&p.name.toLowerCase().includes(q));
+ if(priceLimit!=="all") list=list.filter(p=>p.price<=Number(priceLimit));
+ if(stockFilter==="in") list=list.filter(p=>(p.stock===undefined||p.stock>0));
+ if(sort==="low") list.sort((a,b)=>a.price-b.price);
+ if(sort==="high") list.sort((a,b)=>b.price-a.price);
+ document.getElementById("grid").innerHTML=list.map(p=>`
+ <div class="card">
+  <div class="pic">${p.img ? `<img class="realpic" src="${p.img}" alt="${p.name}" onerror="this.style.display='none'">` : p.icon}</div>
+  <h3>${p.name}</h3>
+  <div><span class="price">₹${p.price.toLocaleString()}</span><span class="old">₹${p.old.toLocaleString()}</span><span class="off">${Math.round((1-p.price/p.old)*100)}% off</span></div>
+  ${p.stock!==undefined?`<div style="font-size:12px;color:${p.stock>0?'#168b39':'#d32f2f'};margin-top:5px">${p.stock>0?'✓ In Stock ('+p.stock+')':'✕ Out of Stock'}</div>`:''}
+  <div class="actions"><button class="add" onclick="add(${p.id})">Add to Cart</button></div>
+  <button class="buy" onclick="buyNow(${p.id})">Buy Now</button>
+  <button class="details" onclick="openProduct(${p.id})">View Details</button>
+ </div>`).join("") || `<div class="empty">Kuch nahi mila 😕<br><small>Search ya filters change karke dekho.</small></div>`;
+ updateBadge();
+}
+function filterCat(c){currentCat=c;render()}
+function add(id){
+ let p=products.find(x=>x.id===id), x=cart.find(i=>i.id===id);
+ if(p && typeof p.stock==="number" && p.stock<=0){alert("Stock khatam hai.");return}
+ if(x)x.qty++;else cart.push({id,qty:1});
+ save();openCart()
+}
+function buyNow(id){add(id)}
+function save(){localStorage.setItem("shopkart_cart",JSON.stringify(cart));updateBadge()}
+function updateBadge(){document.getElementById("badge").textContent=cart.reduce((s,i)=>s+i.qty,0)}
+function openCart(){document.getElementById("panel").classList.add("open");document.getElementById("overlay").classList.add("show");renderCart()}
+function closeCart(){document.getElementById("panel").classList.remove("open");document.getElementById("overlay").classList.remove("show")}
+function change(id,d){let x=cart.find(i=>i.id===id);if(!x)return;x.qty+=d;if(x.qty<=0)cart=cart.filter(i=>i.id!==id);save();renderCart()}
+function renderCart(){
+ let total=0;
+ document.getElementById("cartList").innerHTML=cart.length?cart.map(i=>{let p=products.find(x=>x.id===i.id),sub=p.price*i.qty;total+=sub;return`
+ <div class="cartitem"><div class="cartpic">${p.icon}</div><div class="cartinfo"><b>${p.name}</b><div>₹${p.price.toLocaleString()}</div><div class="qty"><button onclick="change(${p.id},-1)">−</button> ${i.qty} <button onclick="change(${p.id},1)">+</button></div></div></div>`}).join(""):`<div class="empty">Cart abhi empty hai 🛒</div>`;
+ document.getElementById("total").textContent="₹"+total.toLocaleString();
+}
+function openAdmin(){
+ document.getElementById("adminPanel").classList.add("open");
+ document.getElementById("adminOverlay").classList.add("show");
+ renderAdmin();
+}
+function closeAdmin(){document.getElementById("adminPanel").classList.remove("open");document.getElementById("adminOverlay").classList.remove("show")}
+function saveProducts(){localStorage.setItem("shopkart_products",JSON.stringify(products));render()}
+function adminAdd(){
+ const name=document.getElementById("aName").value.trim(), cat=document.getElementById("aCat").value;
+ const price=Number(document.getElementById("aPrice").value), old=Number(document.getElementById("aOld").value)||price, stock=Number(document.getElementById("aStock").value)||0, img=document.getElementById("aImg").value.trim();
+ if(!name||!price){alert("Product name aur price bharo.");return}
+ products.push({id:Date.now(),name,cat,price,old,stock,icon:"🛍️",img:img||""});
+ saveProducts(); ["aName","aPrice","aOld","aStock","aImg"].forEach(id=>document.getElementById(id).value="");
+ renderAdmin(); alert("Product add ho gaya! 🎉");
+}
+function adminDelete(id){
+ if(!confirm("Ye product delete karna hai?"))return;
+ products=products.filter(p=>p.id!==id);saveProducts();renderAdmin();
+}
+function renderAdmin(){
+ document.getElementById("adminProducts").innerHTML=products.map(p=>`<div style="padding:9px 0;border-bottom:1px solid #eee"><b>${p.name}</b><br>₹${p.price.toLocaleString()} • ${p.cat} • Stock: ${p.stock??"—"} <button onclick="adminDelete(${p.id})" style="float:right;background:#ff6161;color:#fff;border:0;padding:5px 8px;border-radius:3px">Delete</button></div>`).join("");
+ document.getElementById("adminOrders").innerHTML=orders.length?orders.map(o=>`<div style="padding:8px 0;border-bottom:1px solid #eee"><b>#${o.id}</b> • ₹${o.total.toLocaleString()}<br>${o.status||"Order Placed"} • ${o.address||""}</div>`).join(""):`<div class="empty">No orders</div>`;
+}
+function openProduct(id){
+ const p=products.find(x=>x.id===id);
+ document.getElementById("productPanel").classList.add("open");
+ document.getElementById("productOverlay").classList.add("show");
+ document.getElementById("productDetail").innerHTML=`<img src="${p.img}" style="width:100%;height:230px;object-fit:contain;background:#fafafa"><h2>${p.name}</h2><p>Category: ${p.cat}</p><h2>₹${p.price.toLocaleString()} <span style="font-size:14px;text-decoration:line-through;color:#888">₹${p.old.toLocaleString()}</span></h2><p style="color:#168b39">Special discount available</p><p>🚚 Fast delivery • 🔄 Easy returns</p><button class="buy" onclick="add(${p.id});closeProduct()">Add to Cart</button>`;
+}
+function closeProduct(){document.getElementById("productPanel").classList.remove("open");document.getElementById("productOverlay").classList.remove("show")}
+function checkout(){
+ if(!cart.length){alert("Cart empty hai!");return}
+ if(!user){alert("Order place karne ke liye pehle Login / Signup karo.");openAccount();return}
+ const address=document.getElementById("address").value.trim();
+ if(!address){alert("Delivery address bharo.");return}
+ let total=cart.reduce((sum,i)=>sum+products.find(p=>p.id===i.id).price*i.qty,0);
+ orders.unshift({id:"SK"+Date.now().toString().slice(-6),date:new Date().toLocaleString("en-IN"),total,items:cart.reduce((s,i)=>s+i.qty,0),address,status:"Order Placed"});
+ localStorage.setItem("shopkart_orders",JSON.stringify(orders));
+ cart=[];save();renderCart();alert("Order placed! 🎉");showOrders();
+}
+function openAccount(){
+ document.getElementById("accountPanel").classList.add("open");
+ document.getElementById("accountOverlay").classList.add("show"); renderAccount();
+}
+function closeAccount(){document.getElementById("accountPanel").classList.remove("open");document.getElementById("accountOverlay").classList.remove("show")}
+function renderAccount(){
+ const box=document.getElementById("accountBox");
+ if(user){
+  document.getElementById("userLabel").textContent=user.name;
+  box.innerHTML=`<h2>Hello, ${user.name} 👋</h2><p>📧 ${user.email}</p><button onclick="logout()" style="padding:11px 18px;border:0;background:#fb641b;color:#fff;border-radius:4px">Logout</button>`;
+ }else{
+  document.getElementById("userLabel").textContent="Login / Signup";
+  box.innerHTML=`<h3>Login / Signup</h3>
+  <input id="uname" placeholder="Your name" style="width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:4px">
+  <input id="uemail" placeholder="Email" type="email" style="width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:4px">
+  <button onclick="login()" style="width:100%;padding:12px;margin-top:8px;border:0;background:#2874f0;color:#fff;border-radius:4px;font-weight:bold">Continue</button>`;
+ }
+}
+function login(){
+ const name=document.getElementById("uname").value.trim(),email=document.getElementById("uemail").value.trim();
+ if(!name||!email){alert("Name aur email dono bharo.");return}
+ user={name,email};localStorage.setItem("shopkart_user",JSON.stringify(user));renderAccount();alert("Welcome to ShopKart, "+name+"! 🎉");
+}
+function logout(){user=null;localStorage.removeItem("shopkart_user");renderAccount()}
+function showOrders(){
+ document.getElementById("ordersPanel").classList.add("open");document.getElementById("ordersOverlay").classList.add("show");
+ document.getElementById("ordersList").innerHTML=orders.length?orders.map(o=>`<div style="padding:14px;border-bottom:1px solid #eee"><b>Order #${o.id}</b><br>📅 ${o.date}<br>🛍️ ${o.items} item(s)<br>💰 ₹${o.total.toLocaleString()}<br>📍 ${o.address}<br><span style="color:#168b39;font-weight:bold">● ${o.status}</span></div>`).join(""):`<div class="empty">Abhi koi order nahi hai 📦</div>`;
+}
+function closeOrders(){document.getElementById("ordersPanel").classList.remove("open");document.getElementById("ordersOverlay").classList.remove("show")}
+render();
+</script>
+</body>
+</html>
